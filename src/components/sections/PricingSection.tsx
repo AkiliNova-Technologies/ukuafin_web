@@ -8,7 +8,7 @@ import { handlePlanCheckout } from "@/app/actions/billing";
 import { toast } from "sonner";
 
 interface Plan {
-  id: string; 
+  id: string;
   name: string;
   price: { monthly: number | string; annual: number | string };
   tagline: string;
@@ -20,7 +20,7 @@ interface Plan {
 
 const PLANS: Plan[] = [
   {
-    id: "plan_basic_123", 
+    id: "plan_basic_123",
     name: "Basic Plan",
     price: { monthly: 99, annual: 79 },
     tagline: "Essential infrastructure for local credit unions starting out.",
@@ -33,7 +33,11 @@ const PLANS: Plan[] = [
       "2 administrative staff accounts",
       "Mobile application access",
     ],
-    notIncluded: ["Advanced compliance logs", "Multi-branch architecture", "API integration access"],
+    notIncluded: [
+      "Advanced compliance logs",
+      "Multi-branch architecture",
+      "API integration access",
+    ],
   },
   {
     id: "plan_professional_456",
@@ -52,7 +56,10 @@ const PLANS: Plan[] = [
       "Production API channel access",
       "Custom compliance report builder",
     ],
-    notIncluded: ["Enterprise white-label branding", "Dedicated residency account manager"],
+    notIncluded: [
+      "Enterprise white-label branding",
+      "Dedicated residency account manager",
+    ],
   },
   {
     id: "plan_enterprise_789",
@@ -73,14 +80,29 @@ const PLANS: Plan[] = [
   },
 ];
 
-export default function PricingSection({ organizationId, userId }: { organizationId: string; userId: string }) {
+export default function PricingSection({
+  organizationId,
+  userId,
+}: {
+  organizationId?: string;
+  userId?: string;
+}) {
   const [annual, setAnnual] = useState(false);
   const [loadingPlanId, setLoadingPlanId] = useState<string | null>(null);
 
   const onSelectPlan = async (plan: Plan) => {
     if (plan.price.monthly === "Custom") {
-      // FIXED: Modified reassignment using assign() call instead of mutating href directly
-      window.location.assign(`mailto:architecture@ukuafin.com?subject=Enterprise Tier Inquiry`);
+      window.location.assign(
+        `mailto:architecture@ukuafin.com?subject=Enterprise Tier Inquiry`,
+      );
+      return;
+    }
+
+    if (!organizationId || !userId) {
+      toast.error("Authentication Required", {
+        description:
+          "Please sign in or register your workspace to subscribe to a core engine tier.",
+      });
       return;
     }
 
@@ -92,8 +114,10 @@ export default function PricingSection({ organizationId, userId }: { organizatio
         userId,
       });
     } catch (err: unknown) {
-      // FIXED: Handled explicit any error lint rules
-      const msg = err instanceof Error ? err.message : "Failed to initialize Pesapal gateway link.";
+      const msg =
+        err instanceof Error
+          ? err.message
+          : "Failed to initialize Pesapal gateway link.";
       toast.error("Checkout Error", {
         description: msg,
       });
@@ -105,7 +129,6 @@ export default function PricingSection({ organizationId, userId }: { organizatio
   return (
     <section id="pricing" className="py-24 px-6 md:px-8 bg-transparent">
       <div className="max-w-7xl mx-auto space-y-16">
-        
         <div className="text-center space-y-3 max-w-2xl mx-auto">
           <p className="text-xs font-bold text-primary uppercase tracking-widest">
             Predictable Cost Overhead
@@ -114,7 +137,8 @@ export default function PricingSection({ organizationId, userId }: { organizatio
             Transparent Pricing Models
           </h2>
           <p className="text-slate-500 text-sm font-medium leading-relaxed">
-            Scalable accounting tiers with zero hidden settlement operational fees. Adjust parameters dynamically as your membership matrix grows.
+            Scalable accounting tiers with zero hidden settlement operational
+            fees. Adjust parameters dynamically as your membership matrix grows.
           </p>
 
           <div className="inline-flex items-center bg-slate-100 rounded-full p-1 border border-slate-200/40 !mt-6">
@@ -123,11 +147,10 @@ export default function PricingSection({ organizationId, userId }: { organizatio
               onClick={() => setAnnual(false)}
               className={cn(
                 "px-5 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wider transition-all duration-200",
-                !annual 
-                  ? "bg-primary text-white shadow-sm" 
-                  : "text-slate-400 hover:text-slate-600"
-              )}
-            >
+                !annual
+                  ? "bg-primary text-white shadow-sm"
+                  : "text-slate-400 hover:text-slate-600",
+              )}>
               Monthly
             </button>
             <button
@@ -135,11 +158,10 @@ export default function PricingSection({ organizationId, userId }: { organizatio
               onClick={() => setAnnual(true)}
               className={cn(
                 "px-5 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wider transition-all duration-200 flex items-center gap-1.5",
-                annual 
-                  ? "bg-primary text-white shadow-sm" 
-                  : "text-slate-400 hover:text-slate-600"
-              )}
-            >
+                annual
+                  ? "bg-primary text-white shadow-sm"
+                  : "text-slate-400 hover:text-slate-600",
+              )}>
               Yearly
             </button>
           </div>
@@ -153,9 +175,8 @@ export default function PricingSection({ organizationId, userId }: { organizatio
                 "relative flex flex-col rounded-[28px] p-8 transition-all duration-300 justify-between",
                 plan.highlight
                   ? "bg-primary text-white shadow-xl shadow-primary/20 md:scale-[1.05] z-10 py-12 border border-primary"
-                  : "bg-white text-slate-900 border border-slate-100 shadow-sm shadow-slate-100/60 py-10"
-              )}
-            >
+                  : "bg-white text-slate-900 border border-slate-100 shadow-sm shadow-slate-100/60 py-10",
+              )}>
               {plan.highlight && (
                 <div className="absolute top-4 right-6 bg-white/10 text-white border border-white/10 text-[9px] font-bold px-2.5 py-1 rounded-full tracking-wider uppercase select-none">
                   Most Popular
@@ -169,7 +190,11 @@ export default function PricingSection({ organizationId, userId }: { organizatio
                       <span className="text-4xl font-bold tracking-tight">
                         ${annual ? plan.price.annual : plan.price.monthly}
                       </span>
-                      <span className={cn("text-xs font-bold opacity-60", plan.highlight ? "text-white" : "text-slate-400")}>
+                      <span
+                        className={cn(
+                          "text-xs font-bold opacity-60",
+                          plan.highlight ? "text-white" : "text-slate-400",
+                        )}>
                         /month
                       </span>
                     </>
@@ -184,38 +209,54 @@ export default function PricingSection({ organizationId, userId }: { organizatio
                   <h3 className="text-2xl font-bold tracking-tight">
                     {plan.name}
                   </h3>
-                  <p className={cn(
-                    "text-xs font-medium leading-relaxed min-h-[36px]",
-                    plan.highlight ? "text-white/80" : "text-slate-500"
-                  )}>
+                  <p
+                    className={cn(
+                      "text-xs font-medium leading-relaxed min-h-[36px]",
+                      plan.highlight ? "text-white/80" : "text-slate-500",
+                    )}>
                     {plan.tagline}
                   </p>
                 </div>
 
                 <div className="space-y-3 pt-2">
                   {plan.features.map((feature) => (
-                    <div key={feature} className="flex items-start gap-2.5 text-left">
-                      <CircleCheck 
+                    <div
+                      key={feature}
+                      className="flex items-start gap-2.5 text-left">
+                      <CircleCheck
                         className={cn(
                           "size-4 shrink-0 mt-0.5",
-                          plan.highlight ? "text-white" : "text-primary"
-                        )} 
+                          plan.highlight ? "text-white" : "text-primary",
+                        )}
                       />
-                      <span className={cn("text-xs font-medium leading-normal", plan.highlight ? "text-white/90" : "text-slate-600")}>
+                      <span
+                        className={cn(
+                          "text-xs font-medium leading-normal",
+                          plan.highlight ? "text-white/90" : "text-slate-600",
+                        )}>
                         {feature}
                       </span>
                     </div>
                   ))}
-                  
+
                   {plan.notIncluded?.map((feature) => (
-                    <div key={feature} className={cn("flex items-start gap-2.5 text-left", plan.highlight ? "opacity-30" : "opacity-35")}>
-                      <CircleMinus 
+                    <div
+                      key={feature}
+                      className={cn(
+                        "flex items-start gap-2.5 text-left",
+                        plan.highlight ? "opacity-30" : "opacity-35",
+                      )}>
+                      <CircleMinus
                         className={cn(
-                          "size-4 shrink-0 mt-0.5", 
-                          plan.highlight ? "text-white" : "text-slate-400"
-                        )} 
+                          "size-4 shrink-0 mt-0.5",
+                          plan.highlight ? "text-white" : "text-slate-400",
+                        )}
                       />
-                      <span className={cn("text-xs font-medium line-through leading-normal", plan.highlight ? "text-white" : "text-slate-400")}>
+                      <span
+                        className={cn(
+                          "text-xs font-medium line-through leading-normal",
+                          plan.highlight ? "text-white" : "text-slate-400",
+                        )}>
                         {feature}
                       </span>
                     </div>
@@ -231,18 +272,17 @@ export default function PricingSection({ organizationId, userId }: { organizatio
                     "w-full h-11 font-bold text-xs rounded-full tracking-wide transition-all shadow-sm border-0 flex items-center justify-center gap-2",
                     plan.highlight
                       ? "bg-white text-primary hover:bg-slate-50 hover:text-primary"
-                      : "bg-slate-100 text-slate-700 hover:bg-slate-200/80"
+                      : "bg-slate-100 text-slate-700 hover:bg-slate-200/80",
+                  )}>
+                  {loadingPlanId === plan.id && (
+                    <Loader2 className="size-4 animate-spin" />
                   )}
-                >
-                  {loadingPlanId === plan.id && <Loader2 className="size-4 animate-spin" />}
                   {plan.cta}
                 </Button>
               </div>
-
             </div>
           ))}
         </div>
-
       </div>
     </section>
   );

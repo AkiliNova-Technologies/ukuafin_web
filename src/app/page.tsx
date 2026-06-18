@@ -14,7 +14,6 @@ export default function Home() {
       
       <Navbar />
       
-      {/* flex-1 ensures the footer stays at the bottom even if content is short */}
       <main className="">
         <HeroSection />
         <StatsSection />
