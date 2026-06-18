@@ -183,52 +183,52 @@ async function main() {
   const seededPermissions = await prisma.permission.findMany();
 
   const subscriptionPlansData = [
-  {
-    name: "Sacco Starter Core",
-    slug: "sacco-starter-core",
-    description: "Essential structural ledger infrastructure for newly formed savings groups and micro-Saccos.",
-    price: 49,
-    currency: "USD",
-    billingCycle: BillingCycle.MONTHLY,
-    maxBranches: 1,
-    maxMembers: 500,
-    maxStaff: 5,
-    hasSms: true,
-    hasAdvancedReports: false,
-    hasApiAccess: false,
-    isActive: true,
-  },
-  {
-    name: "Sacco Growth Tier",
-    slug: "sacco-growth-tier",
-    description: "Optimized workspace layout plan for scaling mid-tier institutional credit networks.",
-    price: 99,
-    currency: "USD",
-    billingCycle: BillingCycle.MONTHLY,
-    maxBranches: 5,
-    maxMembers: 5000,
-    maxStaff: 25,
-    hasSms: true,
-    hasAdvancedReports: true,
-    hasApiAccess: false,
-    isActive: true,
-  },
-  {
-    name: "Sacco Enterprise Pro",
-    slug: "sacco-enterprise-pro",
-    description: "Complete unconstrained multi-branch control framework with advanced audit tracing and API hooks.",
-    price: 249,
-    currency: "USD",
-    billingCycle: BillingCycle.MONTHLY,
-    maxBranches: 20,
-    maxMembers: 50000,
-    maxStaff: 100,
-    hasSms: true,
-    hasAdvancedReports: true,
-    hasApiAccess: true,
-    isActive: true,
-  }
-];
+    {
+      name: "Sacco Starter Core",
+      slug: "sacco-starter-core",
+      description: "Essential structural ledger infrastructure for newly formed savings groups and micro-Saccos.",
+      price: 49,
+      currency: "USD",
+      billingCycle: BillingCycle.MONTHLY,
+      maxBranches: 1,
+      maxMembers: 500,
+      maxStaff: 5,
+      hasSms: true,
+      hasAdvancedReports: false,
+      hasApiAccess: false,
+      isActive: true,
+    },
+    {
+      name: "Sacco Growth Tier",
+      slug: "sacco-growth-tier",
+      description: "Optimized workspace layout plan for scaling mid-tier institutional credit networks.",
+      price: 99,
+      currency: "USD",
+      billingCycle: BillingCycle.MONTHLY,
+      maxBranches: 5,
+      maxMembers: 5000,
+      maxStaff: 25,
+      hasSms: true,
+      hasAdvancedReports: true,
+      hasApiAccess: false,
+      isActive: true,
+    },
+    {
+      name: "Sacco Enterprise Pro",
+      slug: "sacco-enterprise-pro",
+      description: "Complete unconstrained multi-branch control framework with advanced audit tracing and API hooks.",
+      price: 249,
+      currency: "USD",
+      billingCycle: BillingCycle.MONTHLY,
+      maxBranches: 20,
+      maxMembers: 50000,
+      maxStaff: 100,
+      hasSms: true,
+      hasAdvancedReports: true,
+      hasApiAccess: true,
+      isActive: true,
+    }
+  ];
 
   console.log("💳 Provisioning commercial subscription matrices...");
 
@@ -295,13 +295,11 @@ async function main() {
       organizationId: targetOrg.id,
       name: "Sacco System Admin",
       key: "sacco_admin",
-      description:
-        "Full contextual operations control over this workspace environment.",
+      description: "Full contextual operations control over this workspace environment.",
       isSystem: true,
     },
   });
 
-  // Optimized bulk binding of all seeded system permissions directly to the Admin Role
   const rolePermissionsPayload = seededPermissions.map((perm) => ({
     roleId: adminRole.id,
     permissionId: perm.id,
@@ -310,7 +308,7 @@ async function main() {
     data: rolePermissionsPayload,
   });
 
-  // User 1: Platform Super Admin (AkiliNova Scope)
+  // User 1: Platform Super Admin (Bypasses Tenant Boundaries Safely)
   await prisma.user.create({
     data: {
       name: "Albert Watbin Admin",
@@ -319,6 +317,8 @@ async function main() {
       platformRole: PlatformRole.PLATFORM_SUPER_ADMIN,
       status: UserStatus.ACTIVE,
       emailVerifiedAt: new Date(),
+      organizationId: null, // FIXED: Explicit isolation escape parameter alignment
+      branchId: null,
     },
   });
 
@@ -404,8 +404,7 @@ async function main() {
     data: {
       organizationId: targetOrg.id,
       name: "Emergency Asset Development Loan",
-      description:
-        "Short-to-medium window financing structure targeted at micro-enterprise execution.",
+      description: "Short-to-medium window financing structure targeted at micro-enterprise execution.",
       minAmount: 500000,
       maxAmount: 20000000,
       interestRate: 12.5,
@@ -437,7 +436,6 @@ async function main() {
     },
   });
 
-  // Create Installment Schedules for layout tracking
   await prisma.loanSchedule.createMany({
     data: [
       {
@@ -463,7 +461,6 @@ async function main() {
     ],
   });
 
-  // Historical Account Floating Deposits Ledger Entries
   await prisma.financialTransaction.create({
     data: {
       organizationId: targetOrg.id,
@@ -473,8 +470,7 @@ async function main() {
       status: TransactionStatus.COMPLETED,
       amount: 1450000.0,
       reference: "TRX-DEP-90823",
-      description:
-        "Initial cash account floating capital layout injection setup.",
+      description: "Initial cash account floating capital layout injection setup.",
       createdById: staffUser.id,
       approvedById: staffUser.id,
       approvedAt: new Date(),
@@ -482,9 +478,7 @@ async function main() {
   });
 
   console.log(`\n✨ Seeding operational cycles completed successfully.`);
-  console.log(
-    `📊 Matrix deployment completed under Organization: "${targetOrg.name}" [${targetOrg.slug}]`,
-  );
+  console.log(`📊 Matrix deployment completed under Organization: "${targetOrg.name}" [${targetOrg.slug}]`);
 }
 
 main()
