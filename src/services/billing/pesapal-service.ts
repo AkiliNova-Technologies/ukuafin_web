@@ -6,7 +6,8 @@ import {
 } from "@/lib/pesapal/client";
 import { SubscriptionStatus, InvoiceStatus } from "@prisma/client";
 
-// FIXED: Defined a safe interface type signature to clean out the unexpected 'any' rule failure
+const USD_TO_UGX_RATE = 3750;
+
 interface PesapalTransactionPayload {
   confirmation_code?: string;
   payment_method?: string;
@@ -32,6 +33,14 @@ export class PesapalBillingService {
       if (!org || !plan) {
         throw new Error("Invalid organization or plan selected for subscription processing.");
       }
+      
+      let finalInvoiceAmount = Number(plan.price);
+      const targetCurrency = org.currency || "UGX";
+
+      if (plan.currency === "USD" && targetCurrency === "UGX") {
+        finalInvoiceAmount = Math.round(finalInvoiceAmount * USD_TO_UGX_RATE);
+        console.log(`[CONVERSION]: Handled dynamic mapping of $${plan.price} USD to ${finalInvoiceAmount} UGX`);
+      }
 
       const uniqueRef = `INV-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`;
       
@@ -39,17 +48,17 @@ export class PesapalBillingService {
         data: {
           organizationId: org.id,
           invoiceNo: uniqueRef,
-          subTotal: plan.price,
-          amount: plan.price,
-          currency: plan.currency || "UGX",
+          subTotal: finalInvoiceAmount,
+          amount: finalInvoiceAmount,
+          currency: targetCurrency, // Aligned with tenant's localized operating balance system
           status: InvoiceStatus.DRAFT,
           dueDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
           items: {
             create: {
-              description: `UkuaFin Base ${plan.name} Package Access Fee`,
+              description: `UkuaFin Base ${plan.name} Package Access Fee (${plan.price} ${plan.currency})`,
               quantity: 1,
-              unitPrice: plan.price,
-              totalPrice: plan.price,
+              unitPrice: finalInvoiceAmount,
+              totalPrice: finalInvoiceAmount,
             },
           },
         },
@@ -82,6 +91,7 @@ export class PesapalBillingService {
           newValues: {
             invoiceNo: updatedInvoice.invoiceNo,
             amount: updatedInvoice.amount.toString(),
+            currency: targetCurrency,
             planId: plan.id,
             status: InvoiceStatus.DRAFT,
           },
@@ -99,8 +109,8 @@ export class PesapalBillingService {
     try {
       const checkoutData = await submitPesapalOrder({
         id: baseData.invoice.invoiceNo,
-        currency: baseData.invoice.currency,
-        amount: Number(baseData.invoice.amount),
+        currency: baseData.invoice.currency, // Already converted to UGX
+        amount: Number(baseData.invoice.amount), // Already converted to full valuation (e.g. 183750)
         description: `UkuaFin Subscription Renewal: ${baseData.plan.name}`.substring(0, 100),
         callback_url: `${process.env.NEXT_PUBLIC_APP_URL}/tenant/billing`,
         redirect_mode: "TOP_WINDOW",
@@ -121,7 +131,6 @@ export class PesapalBillingService {
         },
       });
 
-      // FIXED: Crucially persist the tracking ID back to the invoice so cancel/refund flows work
       await prisma.invoice.update({
         where: { id: baseData.invoice.id },
         data: { pesapalTrackingId: checkoutData.order_tracking_id },
@@ -129,7 +138,6 @@ export class PesapalBillingService {
 
       return checkoutData.redirect_url;
     } catch (error) {
-      // If the API call fails completely, flip invoice to FAILED so it's not sitting in DRAFT indefinitely
       await prisma.invoice.update({
         where: { id: baseData.invoice.id },
         data: { status: InvoiceStatus.FAILED },
